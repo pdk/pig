@@ -1,0 +1,326 @@
+_Introduction_
+
+Congratulations on your new find!  What you have here is the latest
+and greatest linguistically phonologically felicitous, automatic
+allomorph generating transition network morphological parser!  No more
+will you have to translate phonological rules into table-represented
+finite state machines!  No more will you have to hard-code phonology
+in C into a program!  No more will you have to produce, before-hand, all
+the allomorphs for each morpheme!  
+
+                        pig!
+
+Pig is a transition network parser modeled after keCi.  The main
+differences are in the working of the phonology.  Pig takes rules
+familiar in style to standard SPE rewriting rules.  With these rules
+it generates viable allomorphs for each morpheme when reading the
+lexicon.  During parsing only these viable allomorphs are compared to
+the surface string (the input word).  A tree structure is built which
+knows which morphemes were found in allomorph form in the surface
+string.  After this tree is built the paths thru the tree which
+provide a match with the entire input word and leave the transition
+network in a final state are given to the phonology component to
+check.  Those analyses which pass the phonology are considered
+correct. 
+
+The preceding paragraph may not have been too enlightening.  It was a
+brief overview of pig.  In this brochure I will look at the four major
+parts of pig: the phonology, lexicon, network and parser.
+
+_Phonology_
+
+The phonology component enables construction of simple rewriting
+rules.  These rules are all ordered.  Contexts may be specified to
+restrict application of these rules.
+
+Pig reads the file "phonology" looking for character class definitions
+and phonological rules.  All phonological information is in the
+"phonology" file.  Lets look at some examples.
+
+# This is the phonology file.
+
+{JaeiouAEIOU} V
+{bcdfghijklmnpqrstvwxy BCDFGHKLMNPQRSTVWXYZ} C
+
+        u -> 0          i + __ ;    # u deletion 
+    u/e/J -> 0/0/0      a + __ ;    # u/e/J deletion
+        o -> 0          a + __ C ;  # o deletion
+        a -> i          a + __ ;    # a raising
+a/e/i/o/u -> 0/0/0/0/0  __ + V ;    # double vowel shortening
+    a/e/i -> O/E/I      __ + Z ;    # morphological stress
+
+# end of sample phonology.
+
+Here we have two character class definitions and six phonological
+rules.  
+
+The first definition defines a class "V", vowels.  The second defines
+a class "C", consonants.  A character class definition is specified by
+enclosing a series of characters in "{" and "}" and following that
+with a name.  Character class definitions are usefule in writing
+phonological rules, as in the o deletion and double vowel shortening
+rules shown above.
+
+A phonological rule is made of six parts: the left alternate group, an
+arrow, the right alternate group, the left context, an underbar, and
+the right context.  
+
+As was stated before, the phonological rules are rewriting rules.
+Something in a left alternate group will be rewritten as the
+corresponding part of the right alternate when the left and right
+contexts are satisfied.  For example, in the morphological stress
+rule, above, "a" may be rewritten as "O", "e" as "E", and "i" as "I".
+In these rules, "0" is removed from the input strings, so in the
+double vowel shortening rule, "a","e","i", etc are replaces with ""
+(the empty string), effectivly deleting them.
+
+The alternates are restricted.  The length of all the pieces of the
+left alternate must be the same length.  "a/ae" is an illegal left
+alternate.  The left and right alternates must have the same number of
+pieces.  "a -> a/e" and "a/e -> i" are illegal.
+
+The left and right contexts specify what needs to be around a piece of
+the left alternate in order for it to be rewritten.  The contexts can
+contains either characters or character class definitions.  The
+context is examined word by word.  If a word has been defined as a
+character class then any character in the character class will match
+at that position.  If the word is not defined as a character class
+then each letter in the word takes a position.  For instance, assuming
+the definitions above, "def" and "d e f" are equivilent, but "dVf" and
+"d V f" are not.  In "dVf" the characters "d", "V" and "f" must be
+found in the string for the context to match, but in "d V f" a "d" and
+a member of the character class "V" and the letter "f" must be found.
+
+A word starting with "_" separates the left context from the right
+context.  A semi-colon terminates the right context.
+
+There are no "optional" rules, all are "obligatory".  The rules apply
+from left to right in the string.  The rules apply in the order they
+are read in the "phonology" file.  It must be noted that it is
+possible to write infinite loop phonological rules.  For instance 
+
+    a/e -> e/a   __ ;
+
+will never terminate if an "a" or "e" is found in a word.  An "a" will
+become "e" will become "a" will become "e", etc.  The reason this
+exists is for rules like 
+
+    a/e/i/o/u -> 0/0/0/0/0    ___ V ;
+
+to delete all but two vowels.  That is we want "aioeuuie" to become
+"ie" (with this rule).  If a rewriting occurs, then the rule is
+reapplied at that same position.  This opens the possibility of
+infinite rules.  [note:  this can be checked by restricting the right
+alternate from having anything that is in the left alternate.  Manana]
+
+The phonology component also generates viable allomorphs.  This is
+done by examining whatever string is present and postulating that
+anything may be appended at either end.  For instance if we have a
+rule
+
+    a/e/i -> O/E/I      __ + Z ;   # morphological stress
+
+we can generate from a morpheme "parla" ('speak'), the allomorphs
+
+    parla
+    parlO
+
+and avoid 
+
+    pOrla
+    pOrlO
+
+We know what the context of the mid-word "a" is, but we can guess
+about the word-final "a".  This is done by examining a string from
+left to right, as before, but the context may match exactly, almost
+match, or not match at all instead of simply matching or not.  If an
+exact match is found then only the changed form is generated as a
+viable allomorph.  If a partial match is found then both the changed
+and unchanged forms are generated.  If no match is found then only the
+unchanged form is generated.
+
+It should be noted that the phonology component does not make assumtions
+about special characters like "+" or "#".  These are treated the same
+as all the other characters and must be explicitly handled by the user
+in their phonology.  This means that if you want to use "+" as a
+morpheme boundary, then you should have at some point in your
+phonological rules
+
+    + -> 0 __ ;
+
+to delete all the morpheme boundaries.  This provides the oportunity
+to posit that all non-morphological phonological rules apply after all
+morphological rules and show where the break is.
+
+_Lexicon_
+
+The lexicon is organized by morpheme category.  All the morphemes are
+referenced by their viable allomorphs, as generated by the phonology
+component.  This means that there are often several ways to get the
+same morpheme.  Also, for the same viable allomorph there may be
+several morphemes.
+
+The lexicon is built from the "lexicon" file.  Everything in this file
+is assumed to be part of a morpheme definition.  Every morpheme has
+three components: the underlying form, the category, and the gloss.
+Each item is one "word" (no spaces in glosses) and must appear in the
+order just given and followed by a semi-colon.  For example
+
+    #verbs
+    parla     verb    speak;
+    vende     verb    sell;
+    
+    #past definite suffixs
+    +Y    suf pst-def.1s;
+    +sti  suf pst-def.2s;
+    +Z    suf pst-def.3s;
+
+defines five morphemes.  Two of the "verb" category and three of the
+"suf" category.  Note that the suffixes have the morpheme boundaries
+explicitly present in the morphemes in line with the approach in the
+phonology component.
+
+Each time a morpheme is read from the "lexicon" file the underlying
+form is passed to the phonology component to generate viable
+allomorphs.  Each of these is used as an key into a table.  A
+reference for each viable allomorph is made to the morpheme.
+
+As was said before the lexicon is organized by category.  For each
+category there is one of these viable allomorph tables.  So, if we
+know which category of morpheme we need and we know what it needs to
+look like in a surface string we can get a list of morphemes which
+qualify.  This is extremely useful when attempting to parse a word.
+We look at the input word and can find very easily which morphemes we
+may need to consider as being part of the word.
+
+The tables for each category are sorted and the lists of morphemes are
+found using a quick binary search.  This may not make much difference
+from other methods when looking for affixes, as these categories tend
+to be rather restricted, but with roots, it will cut down on search
+time a good bit.
+
+_Network_
+
+The network is built by reading the "network" file.  The "network"
+file contains two things: arc definitions and final state definitions.
+Arc definitions specify the tail and head states and the category of
+morpheme that licenses the transition.  For instance,
+
+    final complete-verb;
+    arc from start to verb by verb;
+    arc from verb to complete-verb by suf;
+
+defines a final state and two arcs.  The tail of the arc is identified
+by the the keyword "from", the head by "to" and the transition
+category by the keyword "by".  An arc definition is terminated by a
+semi-colon and initiated by the word "arc".  The order of the elements
+of an arc is irrelevant, so 
+
+    arc from start to finish by morph;
+    arc to finish by morph from start;
+    arc by morph to start from finish;
+    arc by morph from finish to start;
+
+are all equivilent definitions.
+
+The final state definitions are initiated by the key word "final" and
+terminated by a semi-colon.  Multiple states may be declared final in
+a single statement.  For instance,
+
+    final ab ra ca da bra;
+
+marks the states "ab", "ra", "ca", "da" and "bra" as final accepting
+states.
+
+The arcs are stored with the tail categories.  This is so that given
+any state we can have easy access to ways to get out of it.  So if we
+are in a certain state we can look at all the arcs out and from those
+get the categories of morphemes we need to look for.
+
+An analysis must begin at the state "start" and end in a final state.
+If no arcs are defined "from start" then no words will be parsed.  If
+no states are defined final, then no words will be parsed.
+
+_Parser_
+
+After the phonology, lexicon and network components have read their
+respective files and built their respective internal structures the
+standard input stream in scanned for words.  Each word is examined for
+viable allomorphs and a viable parse tree is built.  Then the
+phonology component is called to process a string built from each
+series of morphemes that have viable allomorphs that both match the
+entire string and take the network to a final state.  The viable parse
+tree is displayed and the analyses which are correct are displayed.
+
+Let's break this down a bit.  There are two main phases of parsing for
+each input word: matching viable allomorphs and applying phonological
+rules to possible analyses.  During the allomorph matching four things
+are considered: the current state, the form of the input word, where
+the end of the input word is, and if the current state is a final
+state.  The current state detemines what categories we need to look in
+for viable allomorphs.  The form of the input word determines which of
+the morphemes of each category we need to look at.  The end of the
+word and whether or not the current state is a final state determines
+if the string of morphemes found is a plausable analysis.
+
+During the matching of viable allomorphs a tree containing morphemes
+and flags for plausable analyses is built.  Each node of the tree is
+associated with a morpheme.  The children of a node, N, contain the
+morphemes that may follow the morpheme in N.  In each node, also, is a
+flag for a plausable analysis.
+
+The reason for building this tree is that there may be different ways
+of breaking an input word into viable allomorphs, but with the same
+morphemes.  For instance, suppose we have two morphemes each with two
+viable allomorphs like
+
+    Morpheme   Viable allomorphs
+    abc        abX, ab
+    fgh        gh, Xgh
+
+The input word "abXgh" could be matched with "abc"+"fgh" in two ways:
+"abX"+"gh" and "ab"+"Xgh", but there in only one analysis.  Because of
+this a tree is built with only unique serieses of morphemes.  
+
+When enough allomorphs have been matched to match the entire input
+word the state is checked to see if it a final state.  If so then a 
+flag is set to signal that at that point in the tree a plausable
+analysis has been reached.
+
+After the tree is built it is traversed and from each path that ends
+with a flagged node the underlying form is constructed.  This proposal
+is passed to the phonology to work on.  The result is compared to the
+input word.  If they match exactly then the analysis is correct and it
+is printed for the user.
+
+Finally the parse tree which has been constructed is displayed for the
+user.  An asterisk is displayed for each node that was a final node.
+This shows the user how many strings were actually passed to the
+phonology to apply to.  The number of times each morpheme was posited
+(by finding a morpheme) is displayed so the user knows how many
+transitions in the network were made.
+
+_Conclusion_
+
+As shown in the first paragraph of the introduction, I believe that
+this method is more general than that of KeCi, more felicitous than
+Kimmo and Ample.  With respect to keCi we don't need either to look at
+all the morphemes leaving a particular state or hard-code phonogical
+rules in C.  Compared to Kimmo this approach is more felicitous
+because there is no need for a linguist to twist their brain to
+produce finite-state machines.  There is no need to before-hand
+generate all the allomorphs of every morpheme or specify phonological
+conditions on every allomorph as with Ample.  
+
+Pig also inherits some of keCis faults.  It is not very appropriate
+for dealing with prefixing.  Ample beats it there.  
+
+Even if the phonology is felicitous it is not very flexible.  It needs
+to be expanded to have optional rules, as well as some enrichment of
+the context specifications.  It would be interesting to explore a
+phonology component based on multi-level accounts of phonology,
+including being able to talk about syllable structure in phonological
+rules.  Also, it would be interesting, and more doable, to explore the
+model for prefixing as discussed in class in the last week.
+
+

@@ -1,0 +1,58 @@
+hello, welcome to the pig.
+
+in this directory you'll find the executable of pig (the parser) and
+files for parsing some regular italian verbs.  (never got to do any more
+italian.)  the brochure is in the file "brochure".  this is a
+description of the operations of pig and it's advantages and
+disavantages.  
+
+Read.me         this file
+brochure        the brochure
+cake/           directory filled with source code
+lexicon         a lexicon for some regular italian verbs
+network         a Very short network for some regular italian verbs
+phonology       the graphological rules for some regular italian verbs
+pig*            the executable pit
+test-data       some sample regular italian verbs
+
+i would suggest printing the brochure, lexicon, network and phonology.
+the test-data can be tried with 
+
+    pig < test-data | more
+
+or some such.
+
+here is the list of the source code in cake.
+
+cake/Makefile
+cake/cset.c
+cake/cset.h
+cake/get_word.c
+cake/get_word.h
+cake/lexicon.c
+cake/lexicon.h
+cake/misc.c
+cake/misc.h
+cake/network.c
+cake/network.h
+cake/parse.c
+cake/parse.h
+cake/phonology.c
+cake/phonology.h
+cake/pig.c
+cake/rule.c
+cake/rule.h
+cake/std.h
+cake/table.c
+cake/table.h
+
+all the .c files have commentary, but the .h files are lacking it.  to
+read the source, i would suggest
+
+    cd cake
+    lpr -whatever *.c *.h Makefile
+
+the makefile will tell you which files depend on which others.
+
+
+

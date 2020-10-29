@@ -1,0 +1,16 @@
+# This is the phonology file.
+
+{JaeiouAEIOU} V
+{bcdfghijklmnpqrstvwxy BCDFGHKLMNPQRSTVWXYZ} C
+
+        u -> 0          i + __ ;   # u deletion
+    u/e/J -> 0/0/0      a + __ ;   # u/e/J deletion
+        o -> 0          a + __ C ; # o deletion
+        a -> i          a + __ ;   # a raising
+a/e/i/o/u -> 0/0/0/0/0  __ + V ;   # double vowel deletion
+    a/e/i -> O/E/I      __ + Z ;   # morphological stress
+        Z -> 0          __ ;       # morphological stresser removal
+      J/Y -> i/i        __ ;       # persistant i fixer
+        + -> 0          __ ;       # morpheme boundary remover
+
+

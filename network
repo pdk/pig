@@ -1,0 +1,12 @@
+final complete-verb;
+
+arc from start to verb by verb;
+arc from verb to complete-verb by suf;
+arc from verb to complete-verb by suf-sc;
+
+arc from start to verb-sc by verb-sc;
+arc from verb-sc to complete-verb by suf;
+arc from verb-sc to sc by sc;
+arc from sc to complete-verb by suf-sc;
+
+

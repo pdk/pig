@@ -1,0 +1,88 @@
+#verbs
+parla     verb    speak;
+vende     verb    sell;
+parti     verb    depart;
+capi      verb-sc understand;
+compra    verb    buy;
+fini      verb-sc finish;
+vede      verb    see;
+senti     verb    feel;
+
+# sc is a meaningless bit.
++sc sc ..;
+
+# In general the 3rd person form is 
+# used as the polite 2nd person form.
+
+#present tense suffixs
++o    suf-sc prs.1s;
++i    suf-sc prs.2s;
++e    suf-sc prs.3s;
++iamo suf    prs.1p;
++te   suf    prs.2p;
++ono  suf-sc prs.3p;
+
+#past definite suffixs
++Y    suf pst-def.1s;
++sti  suf pst-def.2s;
++Z    suf pst-def.3s;
++mmo  suf pst-def.1p;
++ste  suf pst-def.2p;
++rono suf pst-def.3p;
+
+#present participle
++endo suf prs-part;
+
+#past participle
++uto suf pst-part;
+
+#present subjunctive
++a    suf prs-sub.1s;
++a    suf prs-sub.2s;
++a    suf prs-sub.3s;
++iamo suf prs-sub.1p;
++iate suf prs-sub.2p;
++ano  suf prs-sub.3p;
+
+#past subjunctive
++ssi   suf pst-sub.1s;
++ssi   suf pst-sub.2s;
++sse   suf pst-sub.3s;
++ssimo suf pst-sub.1p;
++ste   suf pst-sub.2p;
++ssero suf pst-sub.3p;
+
+#imperfect
++vo   suf imperf.1s;
++vi   suf imperf.2s;
++va   suf imperf.3s;
++vamo suf imperf.1p;
++vate suf imperf.2p;
++vano suf imperf.3p;
+
+#future tense
++rO    suf fut.1s;
++rai   suf fut.2s;
++rA    suf fut.3s;
++remo  suf fut.1p;
++rete  suf fut.2p;
++ranno suf fut.3p;
+
+#conditional
++rei     suf cond.1s;
++resti   suf cond.2s;
++rebbe   suf cond.3s;
++remmo   suf cond.1p;
++reste   suf cond.2p;
++rebbero suf cond.3p;
+
+#infinitive
++re suf infinitive;
+
+#imperative
++J    suf-sc imp.2s;
++a    suf-sc imp.3s;
++iamo suf    imp.1p;
++te   suf    imp.2p;
++ano  suf-sc imp.3p;
+
